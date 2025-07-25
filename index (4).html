@@ -1,0 +1,1827 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AduKampus - Sistem Pengaduan Kampus</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
+    rel="stylesheet"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+    }
+    button:focus {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+    /* Scrollbar for sidebar */
+    #sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+    #sidebar::-webkit-scrollbar-thumb {
+      background-color: #3b82f6;
+      border-radius: 3px;
+    }
+    /* Modal backdrop */
+    #modal-backdrop {
+      background-color: rgba(0,0,0,0.5);
+    }
+    /* Image preview */
+    .img-preview {
+      max-width: 100%;
+      max-height: 150px;
+      object-fit: contain;
+      border-radius: 0.375rem;
+      margin-top: 0.25rem;
+    }
+    /* PDF link style */
+    .pdf-link {
+      color: #2563eb;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 600;
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+    }
+    /* Modal for PDF viewer */
+    #modal-pdf-backdrop {
+      background-color: rgba(0,0,0,0.7);
+    }
+    /* Email validation message */
+    #email-feedback {
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body class="bg-[#e3edff] min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="bg-white shadow flex items-center justify-center py-4 sticky top-0 z-30">
+    <div class="flex items-center space-x-2">
+      <svg
+        aria-hidden="true"
+        class="h-7 w-7 text-blue-600"
+        fill="none"
+        focusable="false"
+        viewBox="0 0 36 28"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M18 0L0 7V21L18 28L36 21V7L18 0Z"
+          stroke="#3B82F6"
+          stroke-linejoin="round"
+          stroke-width="2"
+        ></path>
+        <path
+          d="M18 7L27 11.5L18 16L9 11.5L18 7Z"
+          stroke="#3B82F6"
+          stroke-linejoin="round"
+          stroke-width="2"
+        ></path>
+        <path
+          d="M18 16L27 20.5L18 25L9 20.5L18 16Z"
+          stroke="#3B82F6"
+          stroke-linejoin="round"
+          stroke-width="2"
+        ></path>
+      </svg>
+      <h1 class="font-extrabold text-xl text-black">AduKampus</h1>
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Sidebar (only visible after login) -->
+    <nav
+      id="sidebar"
+      class="bg-white w-64 border-r border-gray-200 flex flex-col overflow-y-auto hidden"
+      aria-label="Main navigation"
+    >
+      <ul class="mt-6 space-y-1 px-4">
+        <li>
+          <button
+            id="menu-dashboard"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-md font-semibold text-blue-700 bg-blue-100 hover:bg-blue-200 transition"
+            type="button"
+          >
+            <i class="fas fa-tachometer-alt"></i>
+            Dashboard
+          </button>
+        </li>
+        <li>
+          <button
+            id="menu-kirim"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-md font-semibold text-gray-700 hover:bg-blue-100 transition"
+            type="button"
+          >
+            <i class="fas fa-paper-plane"></i>
+            Kirim Pengaduan
+          </button>
+        </li>
+        <li>
+          <button
+            id="menu-daftar"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-md font-semibold text-gray-700 hover:bg-blue-100 transition"
+            type="button"
+          >
+            <i class="fas fa-list"></i>
+            Daftar Pengaduan
+          </button>
+        </li>
+        <li id="menu-manage-role-unit" class="hidden">
+          <button
+            id="menu-manage"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-md font-semibold text-gray-700 hover:bg-blue-100 transition"
+            type="button"
+          >
+            <i class="fas fa-cogs"></i>
+            Kelola Role & Unit
+          </button>
+        </li>
+        <li>
+          <button
+            id="menu-logout"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-md font-semibold text-red-600 hover:bg-red-100 transition"
+            type="button"
+          >
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Main content -->
+    <main class="flex-1 overflow-y-auto p-6 max-w-7xl mx-auto relative">
+      <!-- Login & Register Section -->
+      <section id="auth-section" class="max-w-md mx-auto" aria-label="Authentication Section">
+        <div class="text-center mb-8">
+          <svg
+            aria-hidden="true"
+            class="mx-auto mb-2"
+            fill="none"
+            focusable="false"
+            height="28"
+            viewBox="0 0 36 28"
+            width="36"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 0L0 7V21L18 28L36 21V7L18 0Z"
+              stroke="#3B82F6"
+              stroke-linejoin="round"
+              stroke-width="2"
+            ></path>
+            <path
+              d="M18 7L27 11.5L18 16L9 11.5L18 7Z"
+              stroke="#3B82F6"
+              stroke-linejoin="round"
+              stroke-width="2"
+            ></path>
+            <path
+              d="M18 16L27 20.5L18 25L9 20.5L18 16Z"
+              stroke="#3B82F6"
+              stroke-linejoin="round"
+              stroke-width="2"
+            ></path>
+          </svg>
+          <h1 class="font-extrabold text-xl leading-6 text-black">AduKampus</h1>
+          <p class="text-sm text-gray-600 mt-1">
+            Sistem Informasi Pengelolaan Pengaduan Kampus
+          </p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex justify-center mb-6 space-x-6">
+          <button
+            id="tab-login"
+            class="font-semibold border-b-2 border-blue-600 pb-1 text-blue-700 cursor-pointer"
+            type="button"
+            aria-selected="true"
+            aria-controls="loginForm"
+          >
+            Login
+          </button>
+          <button
+            id="tab-register"
+            class="font-semibold text-gray-500 hover:text-blue-700 cursor-pointer"
+            type="button"
+            aria-selected="false"
+            aria-controls="registerForm"
+          >
+            Daftar
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <form
+          id="loginForm"
+          aria-label="Login AduKampus"
+          class="bg-white rounded-lg shadow-md w-full p-6"
+          novalidate
+        >
+          <label class="block text-xs font-bold mb-1" for="login-email">Email</label>
+          <input
+            class="w-full border border-gray-300 rounded-md px-3 py-2 mb-1 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            id="login-email"
+            placeholder="nama@gmail.com"
+            required
+            type="email"
+            autocomplete="username"
+          />
+          <div id="login-email-feedback" class="text-xs text-red-600 min-h-[1rem]"></div>
+          <label class="block text-xs font-bold mb-1" for="login-password">Password</label>
+          <div class="relative mb-6">
+            <input
+              class="w-full border border-gray-300 rounded-md px-3 py-2 pr-10 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              id="login-password"
+              placeholder="Masukkan password"
+              required
+              type="password"
+              autocomplete="current-password"
+            />
+            <button
+              aria-label="Toggle password visibility"
+              class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+              tabindex="-1"
+              type="button"
+              id="toggleLoginPassword"
+            >
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          <button
+            class="w-full bg-[#0a1128] text-white font-bold py-2 rounded-md mb-6 hover:bg-[#0a1128cc] flex items-center justify-center gap-2"
+            type="submit"
+          >
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+        </form>
+
+        <!-- Register Form -->
+        <form
+          id="registerForm"
+          aria-label="Daftar AduKampus"
+          class="bg-white rounded-lg shadow-md w-full p-6 hidden"
+          novalidate
+        >
+          <label class="block text-xs font-bold mb-1" for="reg-nama">Nama Lengkap</label>
+          <input
+            class="w-full border border-gray-300 rounded-md px-3 py-2 mb-1 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            id="reg-nama"
+            placeholder="Nama lengkap"
+            required
+            type="text"
+            autocomplete="name"
+          />
+          <label class="block text-xs font-bold mb-1" for="reg-email">Email (harus gmail)</label>
+          <input
+            class="w-full border border-gray-300 rounded-md px-3 py-2 mb-1 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            id="reg-email"
+            placeholder="nama@gmail.com"
+            required
+            type="email"
+            autocomplete="email"
+          />
+          <div id="reg-email-feedback" class="text-xs text-red-600 min-h-[1rem] mb-2"></div>
+          <label class="block text-xs font-bold mb-1" for="reg-nim">NIM/NIP</label>
+          <input
+            class="w-full border border-gray-300 rounded-md px-3 py-2 mb-4 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            id="reg-nim"
+            placeholder="Nomor Induk Mahasiswa/Dosen"
+            required
+            type="text"
+          />
+          <label class="block text-xs font-bold mb-1" for="reg-role">Role</label>
+          <select
+            id="reg-role"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          >
+            <option value="" disabled selected>Pilih role</option>
+            <option value="mahasiswa">Mahasiswa</option>
+            <option value="dosen">Dosen</option>
+          </select>
+          <label class="block text-xs font-bold mb-1" for="reg-password">Password</label>
+          <div class="relative mb-6">
+            <input
+              class="w-full border border-gray-300 rounded-md px-3 py-2 pr-10 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              id="reg-password"
+              placeholder="Buat password"
+              required
+              type="password"
+              autocomplete="new-password"
+            />
+            <button
+              aria-label="Toggle password visibility"
+              class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+              tabindex="-1"
+              type="button"
+              id="toggleRegisterPassword"
+            >
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          <button
+            class="w-full bg-[#0a1128] text-white font-bold py-2 rounded-md mb-6 hover:bg-[#0a1128cc] flex items-center justify-center gap-2"
+            type="submit"
+          >
+            <i class="fas fa-user-plus"></i> Daftar
+          </button>
+        </form>
+      </section>
+
+      <!-- Dashboard Section -->
+      <section
+        id="dashboard-section"
+        class="hidden max-w-6xl mx-auto"
+        aria-label="Dashboard Pengadu"
+      >
+        <h2 class="text-2xl font-bold mb-6 text-gray-900">Dashboard</h2>
+        <div id="dashboard-content" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"></div>
+        <div id="dashboard-chart-container" class="hidden bg-white rounded-lg shadow p-6 max-w-md mx-auto md:mx-0 md:max-w-none md:col-span-4 space-y-8">
+          <div>
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Status Pengaduan</h3>
+            <canvas id="adminChart" aria-label="Grafik pie status pengaduan" role="img"></canvas>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Pengaduan per Unit/Departemen</h3>
+            <canvas id="unitChart" aria-label="Grafik batang pengaduan per unit" role="img"></canvas>
+          </div>
+        </div>
+        <p class="text-center text-gray-500 italic" id="no-complaints-msg">Belum ada data pengaduan.</p>
+      </section>
+
+      <!-- Kirim Pengaduan -->
+      <section id="kirim-section" class="hidden max-w-xl mx-auto" aria-label="Form Kirim Pengaduan">
+        <h2 class="text-2xl font-bold mb-6 text-gray-900 text-center">
+          Kirim Pengaduan Baru (Anonimus)
+        </h2>
+        <form id="complaintForm" class="bg-white rounded-lg shadow p-6 space-y-5" novalidate enctype="multipart/form-data">
+          <div>
+            <label for="judul" class="block text-sm font-semibold mb-1"
+              >Judul Pengaduan</label
+            >
+            <input
+              type="text"
+              id="judul"
+              name="judul"
+              placeholder="Judul pengaduan"
+              required
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label for="kategori" class="block text-sm font-semibold mb-1"
+              >Kategori</label
+            >
+            <select
+              id="kategori"
+              name="kategori"
+              required
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled selected>Pilih kategori</option>
+              <option value="Akademik">Akademik</option>
+              <option value="Fasilitas">Fasilitas</option>
+              <option value="Administrasi">Administrasi</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="deskripsi" class="block text-sm font-semibold mb-1"
+              >Deskripsi</label
+            >
+            <textarea
+              id="deskripsi"
+              name="deskripsi"
+              rows="4"
+              placeholder="Deskripsikan pengaduan Anda"
+              required
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            ></textarea>
+          </div>
+
+          <div>
+            <label for="unit" class="block text-sm font-semibold mb-1"
+              >Unit Terkait</label
+            >
+            <select
+              id="unit"
+              name="unit"
+              required
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled selected>Pilih unit</option>
+              <option value="Fakultas Teknik">Fakultas Teknik</option>
+              <option value="Fakultas Ekonomi">Fakultas Ekonomi</option>
+              <option value="Fakultas Hukum">Fakultas Hukum</option>
+              <option value="Administrasi Umum">Administrasi Umum</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="lokasi" class="block text-sm font-semibold mb-1"
+              >Lokasi Kejadian</label
+            >
+            <input
+              type="text"
+              id="lokasi"
+              name="lokasi"
+              placeholder="Lokasi kejadian"
+              required
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label for="prioritas" class="block text-sm font-semibold mb-1"
+              >Prioritas</label
+            >
+            <select
+              id="prioritas"
+              name="prioritas"
+              required
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled selected>Pilih prioritas</option>
+              <option value="Rendah">Rendah</option>
+              <option value="Sedang">Sedang</option>
+              <option value="Tinggi">Tinggi</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="telepon" class="block text-sm font-semibold mb-1"
+              >Nomor Telepon</label
+            >
+            <input
+              type="tel"
+              id="telepon"
+              name="telepon"
+              placeholder="Nomor telepon"
+              required
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label for="foto" class="block text-sm font-semibold mb-1">Lampirkan Foto (opsional)</label>
+            <input
+              type="file"
+              id="foto"
+              name="foto"
+              accept="image/*"
+              class="w-full text-sm text-gray-600"
+            />
+            <img id="foto-preview" alt="Preview foto pengaduan" class="img-preview hidden" />
+          </div>
+
+          <fieldset class="border border-gray-300 rounded-md p-4">
+            <legend class="text-sm font-semibold text-gray-700 mb-2">
+              Informasi Pelapor (Akan disembunyikan dari Admin)
+            </legend>
+            <div class="space-y-1 text-gray-700 text-sm">
+              <p><span class="font-semibold">Nama:</span> <span id="pelapor-nama"></span></p>
+              <p><span class="font-semibold">Email:</span> <span id="pelapor-email"></span></p>
+              <p><span class="font-semibold">Role:</span> <span id="pelapor-role"></span></p>
+              <p><span class="font-semibold">NIM/NIP:</span> <span id="pelapor-nim"></span></p>
+            </div>
+          </fieldset>
+
+          <button
+            type="submit"
+            class="w-full bg-[#0a1128] text-white font-bold py-2 rounded-md hover:bg-[#0a1128cc] transition flex items-center justify-center gap-2"
+          >
+            <i class="fas fa-paper-plane"></i> Kirim Pengaduan
+          </button>
+        </form>
+      </section>
+
+      <!-- Daftar Pengaduan Section -->
+      <section id="daftar-section" class="hidden max-w-5xl mx-auto" aria-label="Daftar Pengaduan">
+        <h2 class="text-2xl font-bold mb-6 text-gray-900">Daftar Pengaduan</h2>
+
+        <!-- Role selection form for mahasiswa/dosen -->
+        <form id="roleFilterForm" class="mb-6 max-w-sm mx-auto flex items-center gap-3" aria-label="Filter daftar pengaduan berdasarkan role">
+          <label for="roleFilter" class="font-semibold text-gray-700">Pilih Role:</label>
+          <select id="roleFilter" class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" aria-required="true" required>
+            <option value="mahasiswa" selected>Mahasiswa</option>
+            <option value="dosen">Dosen</option>
+          </select>
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">Tampilkan</button>
+        </form>
+
+        <!-- Admin: show only table -->
+        <div id="admin-daftar-content" class="hidden bg-white rounded-lg shadow p-6 overflow-x-auto">
+          <table class="min-w-full border border-gray-200 text-sm" aria-label="Tabel daftar pengaduan admin">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="py-3 px-4 border-b border-gray-300 text-left">No</th>
+                <th class="py-3 px-4 border-b border-gray-300 text-left">Judul</th>
+                <th class="py-3 px-4 border-b border-gray-300 text-left">Kategori</th>
+                <th class="py-3 px-4 border-b border-gray-300 text-left">Unit</th>
+                <th class="py-3 px-4 border-b border-gray-300 text-left">Tanggal</th>
+                <th class="py-3 px-4 border-b border-gray-300 text-left">Status</th>
+                <th class="py-3 px-4 border-b border-gray-300 text-left">Prioritas</th>
+                <th class="py-3 px-4 border-b border-gray-300 text-left">Surat Keputusan</th>
+                <th class="py-3 px-4 border-b border-gray-300 text-left">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="admin-complaints-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Mahasiswa/Dosen: show complaints list -->
+        <div id="user-daftar-content" class="space-y-4"></div>
+      </section>
+
+      <!-- Manage Role & Unit Section -->
+      <section id="manage-section" class="hidden max-w-5xl mx-auto" aria-label="Kelola Role dan Unit">
+        <h2 class="text-2xl font-bold mb-6 text-gray-900">Kelola Role & Unit</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- Manage Users -->
+          <div>
+            <h3 class="text-xl font-semibold mb-4">Kelola User</h3>
+            <form id="addUserForm" class="bg-white p-6 rounded-lg shadow space-y-4" novalidate>
+              <div>
+                <label for="user-nama" class="block text-sm font-semibold mb-1">Nama Lengkap</label>
+                <input type="text" id="user-nama" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+              </div>
+              <div>
+                <label for="user-email" class="block text-sm font-semibold mb-1">Email (harus gmail)</label>
+                <input type="email" id="user-email" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                <div id="user-email-feedback" class="text-xs text-red-600 min-h-[1rem] mt-1"></div>
+              </div>
+              <div>
+                <label for="user-nim" class="block text-sm font-semibold mb-1">NIM/NIP</label>
+                <input type="text" id="user-nim" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+              </div>
+              <div>
+                <label for="user-role" class="block text-sm font-semibold mb-1">Role</label>
+                <select id="user-role" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                  <option value="" disabled selected>Pilih role</option>
+                  <option value="mahasiswa">Mahasiswa</option>
+                  <option value="dosen">Dosen</option>
+                  <option value="admin">Admin</option>
+                  <option value="superadmin">Superadmin</option>
+                </select>
+              </div>
+              <div>
+                <label for="user-password" class="block text-sm font-semibold mb-1">Password</label>
+                <input type="password" id="user-password" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+              </div>
+              <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition w-full font-semibold">Tambah User</button>
+            </form>
+
+            <div class="mt-6 bg-white rounded-lg shadow p-4 max-h-[300px] overflow-y-auto">
+              <h4 class="font-semibold mb-3">Daftar User</h4>
+              <table class="min-w-full text-sm border border-gray-200">
+                <thead class="bg-gray-100">
+                  <tr>
+                    <th class="py-2 px-3 border-b border-gray-300 text-left">Nama</th>
+                    <th class="py-2 px-3 border-b border-gray-300 text-left">Email</th>
+                    <th class="py-2 px-3 border-b border-gray-300 text-left">Role</th>
+                    <th class="py-2 px-3 border-b border-gray-300 text-left">NIM/NIP</th>
+                    <th class="py-2 px-3 border-b border-gray-300 text-left">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="user-list-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Manage Units -->
+          <div>
+            <h3 class="text-xl font-semibold mb-4">Kelola Unit</h3>
+            <form id="addUnitForm" class="bg-white p-6 rounded-lg shadow space-y-4" novalidate>
+              <div>
+                <label for="unit-name" class="block text-sm font-semibold mb-1">Nama Unit</label>
+                <input type="text" id="unit-name" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+              </div>
+              <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition w-full font-semibold">Tambah Unit</button>
+            </form>
+
+            <div class="mt-6 bg-white rounded-lg shadow p-4 max-h-[300px] overflow-y-auto">
+              <h4 class="font-semibold mb-3">Daftar Unit</h4>
+              <ul id="unit-list" class="list-disc list-inside text-sm space-y-1"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Modal for complaint detail -->
+      <div id="modal-backdrop" class="fixed inset-0 hidden items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative overflow-y-auto max-h-[80vh]">
+          <h3 id="modal-title" class="text-xl font-bold mb-4">Detail Pengaduan</h3>
+          <div id="modal-content" class="space-y-2 text-gray-700 text-sm"></div>
+          <button id="modal-close" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700" aria-label="Close modal">
+            <i class="fas fa-times fa-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal for upload Surat Keputusan -->
+      <div id="modal-upload-backdrop" class="fixed inset-0 hidden items-center justify-center z-50 bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+          <h3 class="text-xl font-bold mb-4">Lampirkan Surat Keputusan</h3>
+          <form id="uploadDecisionForm" class="space-y-4" enctype="multipart/form-data">
+            <input type="file" id="decisionFile" accept=".pdf" required class="w-full border border-gray-300 rounded-md px-3 py-2" />
+            <div class="flex justify-end gap-3">
+              <button type="button" id="uploadCancelBtn" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
+              <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Upload</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Modal for PDF Viewer -->
+      <div id="modal-pdf-backdrop" class="fixed inset-0 hidden items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="modal-pdf-title">
+        <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full p-4 relative max-h-[90vh] flex flex-col">
+          <h3 id="modal-pdf-title" class="text-xl font-bold mb-4">Surat Keputusan</h3>
+          <button id="modal-pdf-close" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700" aria-label="Close PDF modal">
+            <i class="fas fa-times fa-lg"></i>
+          </button>
+          <iframe id="pdf-frame" src="" class="flex-1 w-full rounded" frameborder="0" aria-label="PDF Surat Keputusan"></iframe>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Password toggle for login
+    const toggleLoginPasswordBtn = document.getElementById("toggleLoginPassword");
+    const loginPasswordInput = document.getElementById("login-password");
+    toggleLoginPasswordBtn.addEventListener("click", () => {
+      const type = loginPasswordInput.type === "password" ? "text" : "password";
+      loginPasswordInput.type = type;
+      toggleLoginPasswordBtn.querySelector("i").classList.toggle("fa-eye");
+      toggleLoginPasswordBtn.querySelector("i").classList.toggle("fa-eye-slash");
+    });
+
+    // Password toggle for register
+    const toggleRegisterPasswordBtn = document.getElementById("toggleRegisterPassword");
+    const registerPasswordInput = document.getElementById("reg-password");
+    toggleRegisterPasswordBtn.addEventListener("click", () => {
+      const type = registerPasswordInput.type === "password" ? "text" : "password";
+      registerPasswordInput.type = type;
+      toggleRegisterPasswordBtn.querySelector("i").classList.toggle("fa-eye");
+      toggleRegisterPasswordBtn.querySelector("i").classList.toggle("fa-eye-slash");
+    });
+
+    // Tabs for login/register
+    const tabLogin = document.getElementById("tab-login");
+    const tabRegister = document.getElementById("tab-register");
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const loginEmailInput = document.getElementById("login-email");
+    const loginEmailFeedback = document.getElementById("login-email-feedback");
+    const regEmailInput = document.getElementById("reg-email");
+    const regEmailFeedback = document.getElementById("reg-email-feedback");
+
+    tabLogin.addEventListener("click", () => {
+      tabLogin.classList.add("border-b-2", "border-blue-600", "pb-1", "text-blue-700");
+      tabLogin.setAttribute("aria-selected", "true");
+      tabRegister.classList.remove("border-b-2", "border-blue-600", "pb-1", "text-blue-700");
+      tabRegister.setAttribute("aria-selected", "false");
+      loginForm.classList.remove("hidden");
+      registerForm.classList.add("hidden");
+      clearEmailFeedback();
+    });
+
+    tabRegister.addEventListener("click", () => {
+      tabRegister.classList.add("border-b-2", "border-blue-600", "pb-1", "text-blue-700");
+      tabRegister.setAttribute("aria-selected", "true");
+      tabLogin.classList.remove("border-b-2", "border-blue-600", "pb-1", "text-blue-700");
+      tabLogin.setAttribute("aria-selected", "false");
+      registerForm.classList.remove("hidden");
+      loginForm.classList.add("hidden");
+      clearEmailFeedback();
+    });
+
+    // Email validation function for gmail only
+    function validateGmail(email) {
+      return /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(email);
+    }
+
+    // Show or clear email feedback
+    function showEmailFeedback(inputElem, feedbackElem) {
+      if (!validateGmail(inputElem.value.trim())) {
+        feedbackElem.textContent = "Email harus menggunakan domain gmail.com";
+        inputElem.setCustomValidity("Invalid");
+      } else {
+        feedbackElem.textContent = "";
+        inputElem.setCustomValidity("");
+      }
+    }
+    function clearEmailFeedback() {
+      loginEmailFeedback.textContent = "";
+      loginEmailInput.setCustomValidity("");
+      regEmailFeedback.textContent = "";
+      regEmailInput.setCustomValidity("");
+      userEmailFeedback.textContent = "";
+      userEmailInput.setCustomValidity("");
+    }
+
+    // Real-time email validation on input
+    loginEmailInput.addEventListener("input", () => {
+      showEmailFeedback(loginEmailInput, loginEmailFeedback);
+    });
+    regEmailInput.addEventListener("input", () => {
+      showEmailFeedback(regEmailInput, regEmailFeedback);
+    });
+
+    // Navigation buttons (sidebar)
+    const dashboardBtn = document.getElementById("menu-dashboard");
+    const kirimBtn = document.getElementById("menu-kirim");
+    const daftarBtn = document.getElementById("menu-daftar");
+    const logoutBtn = document.getElementById("menu-logout");
+    const manageRoleUnitBtn = document.getElementById("menu-manage");
+
+    const sidebar = document.getElementById("sidebar");
+    const authSection = document.getElementById("auth-section");
+    const dashboardSection = document.getElementById("dashboard-section");
+    const kirimSection = document.getElementById("kirim-section");
+    const daftarSection = document.getElementById("daftar-section");
+    const manageSection = document.getElementById("manage-section");
+
+    // Admin daftar content containers
+    const adminDaftarContent = document.getElementById("admin-daftar-content");
+    const userDaftarContent = document.getElementById("user-daftar-content");
+
+    // Dashboard content container and chart container
+    const dashboardContent = document.getElementById("dashboard-content");
+    const dashboardChartContainer = document.getElementById("dashboard-chart-container");
+    const noComplaintsMsg = document.getElementById("no-complaints-msg");
+
+    // Modal elements
+    const modalBackdrop = document.getElementById("modal-backdrop");
+    const modalContent = document.getElementById("modal-content");
+    const modalCloseBtn = document.getElementById("modal-close");
+
+    const modalUploadBackdrop = document.getElementById("modal-upload-backdrop");
+    const uploadDecisionForm = document.getElementById("uploadDecisionForm");
+    const uploadCancelBtn = document.getElementById("uploadCancelBtn");
+
+    // PDF Modal elements
+    const modalPdfBackdrop = document.getElementById("modal-pdf-backdrop");
+    const modalPdfCloseBtn = document.getElementById("modal-pdf-close");
+    const pdfFrame = document.getElementById("pdf-frame");
+
+    // Role filter form
+    const roleFilterForm = document.getElementById("roleFilterForm");
+    const roleFilterSelect = document.getElementById("roleFilter");
+
+    // Manage User form elements
+    const addUserForm = document.getElementById("addUserForm");
+    const userNameInput = document.getElementById("user-nama");
+    const userEmailInput = document.getElementById("user-email");
+    const userEmailFeedback = document.getElementById("user-email-feedback");
+    const userNimInput = document.getElementById("user-nim");
+    const userRoleSelect = document.getElementById("user-role");
+    const userPasswordInput = document.getElementById("user-password");
+    const userListTbody = document.getElementById("user-list-tbody");
+
+    // Manage Unit form elements
+    const addUnitForm = document.getElementById("addUnitForm");
+    const unitNameInput = document.getElementById("unit-name");
+    const unitList = document.getElementById("unit-list");
+
+    // User data storage (in-memory + localStorage)
+    let users = [
+      { email: "superadmin@gmail.com", password: "superadmin123", role: "superadmin", nama: "Super Admin", nim: "" },
+      { email: "admin@gmail.com", password: "admin123", role: "admin", nama: "Admin", nim: "" },
+      { email: "mahasiswa@gmail.com", password: "mhs123", role: "mahasiswa", nama: "Mahasiswa", nim: "1234567890" },
+      { email: "dosen@gmail.com", password: "dosen123", role: "dosen", nama: "Dosen", nim: "9876543210" },
+    ];
+
+    // Units list for charts and management
+    let units = [
+      "Fakultas Teknik",
+      "Fakultas Ekonomi",
+      "Fakultas Hukum",
+      "Administrasi Umum"
+    ];
+
+    // Load users and units from localStorage if exists
+    const storedUsers = localStorage.getItem("adukampus_users");
+    if (storedUsers) {
+      try {
+        const parsedUsers = JSON.parse(storedUsers);
+        if (Array.isArray(parsedUsers)) {
+          users = parsedUsers;
+        }
+      } catch {}
+    }
+    const storedUnits = localStorage.getItem("adukampus_units");
+    if (storedUnits) {
+      try {
+        const parsedUnits = JSON.parse(storedUnits);
+        if (Array.isArray(parsedUnits)) {
+          units = parsedUnits;
+        }
+      } catch {}
+    }
+
+    // Complaints storage (in-memory + localStorage)
+    let complaints = [];
+    const storedComplaints = localStorage.getItem("adukampus_complaints");
+    if (storedComplaints) {
+      try {
+        const parsedComplaints = JSON.parse(storedComplaints);
+        if (Array.isArray(parsedComplaints)) {
+          complaints = parsedComplaints;
+        }
+      } catch {}
+    }
+
+    // User state
+    let loggedIn = false;
+    let currentUser = null;
+
+    // Chart instances
+    let adminChartInstance = null;
+    let unitChartInstance = null;
+
+    // Show/hide sections and sidebar based on role and menu
+    function setActiveMenu(activeBtn) {
+      [dashboardBtn, kirimBtn, daftarBtn, manageRoleUnitBtn].forEach((btn) => {
+        if (btn === activeBtn) {
+          btn.classList.add("text-blue-700", "bg-blue-100");
+          btn.classList.remove("text-gray-700");
+        } else {
+          btn.classList.remove("text-blue-700", "bg-blue-100");
+          btn.classList.add("text-gray-700");
+        }
+      });
+    }
+
+    function showSection(section) {
+      [dashboardSection, kirimSection, daftarSection, authSection, manageSection].forEach((sec) => {
+        sec.classList.add("hidden");
+      });
+      section.classList.remove("hidden");
+    }
+
+    function showSidebar(show) {
+      if (show) {
+        sidebar.classList.remove("hidden");
+      } else {
+        sidebar.classList.add("hidden");
+      }
+    }
+
+    function showMenuForRole(role) {
+      if (role === "mahasiswa" || role === "dosen") {
+        showSidebar(true);
+        dashboardBtn.parentElement.style.display = "block";
+        kirimBtn.parentElement.style.display = "block";
+        daftarBtn.parentElement.style.display = "block";
+        manageRoleUnitBtn.parentElement.style.display = "none";
+        logoutBtn.parentElement.style.display = "block";
+      } else if (role === "admin") {
+        showSidebar(true);
+        dashboardBtn.parentElement.style.display = "block";
+        kirimBtn.parentElement.style.display = "none";
+        daftarBtn.parentElement.style.display = "block";
+        manageRoleUnitBtn.parentElement.style.display = "none";
+        logoutBtn.parentElement.style.display = "block";
+      } else if (role === "superadmin") {
+        showSidebar(true);
+        dashboardBtn.parentElement.style.display = "block";
+        kirimBtn.parentElement.style.display = "block";
+        daftarBtn.parentElement.style.display = "block";
+        manageRoleUnitBtn.parentElement.style.display = "block";
+        logoutBtn.parentElement.style.display = "block";
+      } else {
+        // Not logged in
+        showSidebar(false);
+        dashboardBtn.parentElement.style.display = "none";
+        kirimBtn.parentElement.style.display = "none";
+        daftarBtn.parentElement.style.display = "none";
+        manageRoleUnitBtn.parentElement.style.display = "none";
+        logoutBtn.parentElement.style.display = "none";
+      }
+    }
+
+    // Save users, units, complaints to localStorage
+    function saveUsers() {
+      localStorage.setItem("adukampus_users", JSON.stringify(users));
+    }
+    function saveUnits() {
+      localStorage.setItem("adukampus_units", JSON.stringify(units));
+    }
+    function saveComplaints() {
+      localStorage.setItem("adukampus_complaints", JSON.stringify(complaints));
+    }
+
+    // Update dashboard stats for mahasiswa/dosen and admin
+    function updateDashboardStats() {
+      if (!currentUser) return;
+      if (currentUser.role !== "admin" && currentUser.role !== "superadmin") {
+        const userComplaints = complaints.filter(c => c.pelaporEmail === currentUser.email);
+        const total = userComplaints.length;
+        const done = userComplaints.filter(c => c.status === "Selesai").length;
+        const processing = userComplaints.filter(c => c.status === "Diproses").length;
+        const pending = userComplaints.filter(c => c.status === "Menunggu").length;
+
+        dashboardContent.innerHTML = `
+          <div class="bg-white rounded-lg shadow p-5 flex items-center gap-4 hover:shadow-lg transition cursor-default">
+            <div class="bg-blue-500 text-white rounded-full p-3 flex items-center justify-center">
+              <i class="fas fa-inbox fa-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-500">Total Pengaduan</p>
+              <p class="text-2xl font-extrabold text-blue-700">${total}</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-5 flex items-center gap-4 hover:shadow-lg transition cursor-default">
+            <div class="bg-green-500 text-white rounded-full p-3 flex items-center justify-center">
+              <i class="fas fa-check-circle fa-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-500">Selesai</p>
+              <p class="text-2xl font-extrabold text-green-700">${done}</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-5 flex items-center gap-4 hover:shadow-lg transition cursor-default">
+            <div class="bg-yellow-400 text-white rounded-full p-3 flex items-center justify-center">
+              <i class="fas fa-spinner fa-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-500">Diproses</p>
+              <p class="text-2xl font-extrabold text-yellow-600">${processing}</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-5 flex items-center gap-4 hover:shadow-lg transition cursor-default">
+            <div class="bg-red-500 text-white rounded-full p-3 flex items-center justify-center">
+              <i class="fas fa-clock fa-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-500">Menunggu</p>
+              <p class="text-2xl font-extrabold text-red-700">${pending}</p>
+            </div>
+          </div>
+        `;
+        dashboardChartContainer.classList.add("hidden");
+
+        if (total === 0) {
+          noComplaintsMsg.classList.remove("hidden");
+        } else {
+          noComplaintsMsg.classList.add("hidden");
+        }
+      } else {
+        const total = complaints.length;
+        const done = complaints.filter(c => c.status === "Selesai").length;
+        const processing = complaints.filter(c => c.status === "Diproses").length;
+        const pending = complaints.filter(c => c.status === "Menunggu").length;
+
+        dashboardContent.innerHTML = `
+          <div class="bg-white rounded-lg shadow p-5 flex items-center gap-4 cursor-default">
+            <div class="bg-blue-500 text-white rounded-full p-3 flex items-center justify-center">
+              <i class="fas fa-inbox fa-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-500">Total Pengaduan</p>
+              <p class="text-2xl font-extrabold text-blue-700">${total}</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-5 flex items-center gap-4 cursor-default">
+            <div class="bg-green-500 text-white rounded-full p-3 flex items-center justify-center">
+              <i class="fas fa-check-circle fa-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-500">Selesai</p>
+              <p class="text-2xl font-extrabold text-green-700">${done}</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-5 flex items-center gap-4 cursor-default">
+            <div class="bg-yellow-400 text-white rounded-full p-3 flex items-center justify-center">
+              <i class="fas fa-spinner fa-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-500">Diproses</p>
+              <p class="text-2xl font-extrabold text-yellow-600">${processing}</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-5 flex items-center gap-4 cursor-default">
+            <div class="bg-red-500 text-white rounded-full p-3 flex items-center justify-center">
+              <i class="fas fa-clock fa-lg"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-500">Menunggu</p>
+              <p class="text-2xl font-extrabold text-red-700">${pending}</p>
+            </div>
+          </div>
+        `;
+        dashboardChartContainer.classList.remove("hidden");
+
+        if (total === 0) {
+          noComplaintsMsg.classList.remove("hidden");
+          dashboardChartContainer.classList.add("hidden");
+        } else {
+          noComplaintsMsg.classList.add("hidden");
+          renderAdminChart();
+          renderUnitChart();
+        }
+      }
+    }
+
+    // Render pie chart for complaint status
+    function renderAdminChart() {
+      const ctx = document.getElementById('adminChart').getContext('2d');
+
+      const statusCounts = {
+        "Menunggu": 0,
+        "Diproses": 0,
+        "Selesai": 0
+      };
+
+      complaints.forEach(c => {
+        if (statusCounts.hasOwnProperty(c.status)) {
+          statusCounts[c.status]++;
+        }
+      });
+
+      const data = {
+        labels: ["Menunggu", "Diproses", "Selesai"],
+        datasets: [{
+          data: [statusCounts["Menunggu"], statusCounts["Diproses"], statusCounts["Selesai"]],
+          backgroundColor: ['#ef4444', '#fbbf24', '#22c55e'],
+          hoverOffset: 30,
+          borderRadius: 6,
+          borderWidth: 1,
+          borderColor: '#fff',
+        }]
+      };
+
+      if (adminChartInstance) {
+        adminChartInstance.destroy();
+      }
+
+      adminChartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: data,
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                font: {
+                  size: 14
+                }
+              }
+            },
+            tooltip: {
+              enabled: true,
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  return `${label}: ${value}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Render bar chart for complaints per unit/department
+    function renderUnitChart() {
+      const ctx = document.getElementById('unitChart').getContext('2d');
+
+      // Count complaints per unit
+      const unitCounts = {};
+      complaints.forEach(c => {
+        if (c.unit) {
+          unitCounts[c.unit] = (unitCounts[c.unit] || 0) + 1;
+        }
+      });
+
+      // Sort units alphabetically
+      const unitsSorted = units.slice().sort();
+      const counts = unitsSorted.map(u => unitCounts[u] || 0);
+
+      const data = {
+        labels: unitsSorted,
+        datasets: [{
+          label: 'Jumlah Pengaduan',
+          data: counts,
+          backgroundColor: '#3b82f6',
+          borderRadius: 4,
+        }]
+      };
+
+      if (unitChartInstance) {
+        unitChartInstance.destroy();
+      }
+
+      unitChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: data,
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              },
+              title: {
+                display: true,
+                text: 'Jumlah Pengaduan'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Unit/Departemen'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              enabled: true
+            }
+          }
+        }
+      });
+    }
+
+    // Render daftar pengaduan for mahasiswa/dosen with detail button filtered by role
+    function renderDaftarPengaduan(roleFilter = "mahasiswa") {
+      if (!currentUser) return;
+      if (currentUser.role === "admin" || currentUser.role === "superadmin") {
+        adminDaftarContent.classList.remove("hidden");
+        userDaftarContent.classList.add("hidden");
+        renderAdminComplaints();
+      } else {
+        adminDaftarContent.classList.add("hidden");
+        userDaftarContent.classList.remove("hidden");
+        const container = userDaftarContent;
+        container.innerHTML = "";
+        const filteredComplaints = complaints.filter(c => {
+          const user = users.find(u => u.email === c.pelaporEmail);
+          return user && user.role === roleFilter && c.pelaporEmail === currentUser.email;
+        });
+        if (filteredComplaints.length === 0) {
+          container.innerHTML = '<p class="text-center text-gray-500 italic">Belum ada pengaduan yang dikirim.</p>';
+          return;
+        }
+        filteredComplaints.forEach(c => {
+          const card = document.createElement("article");
+          card.className = "bg-white rounded-lg shadow p-5 hover:shadow-lg transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500";
+          card.tabIndex = 0;
+          card.setAttribute("role", "button");
+          card.setAttribute("aria-label", `Lihat detail pengaduan: ${c.judul}`);
+
+          const statusColors = {
+            "Selesai": "bg-green-500 text-green-100",
+            "Diproses": "bg-yellow-400 text-yellow-900",
+            "Menunggu": "bg-red-500 text-red-100"
+          };
+          const statusClass = statusColors[c.status] || "bg-gray-300 text-gray-700";
+
+          let fotoHtml = "";
+          if (c.fotoDataUrl) {
+            fotoHtml = `<img src="${c.fotoDataUrl}" alt="Foto lampiran pengaduan" class="mt-2 rounded max-h-40 object-contain border border-gray-300" />`;
+          }
+
+          let suratHtml = "";
+          if (c.suratKeputusanDataUrl) {
+            suratHtml = `<p class="mt-2"><strong>Surat Keputusan:</strong> <button data-id="${c.id}" class="btn-view-pdf pdf-link" type="button">Lihat Surat Keputusan (PDF)</button></p>`;
+          } else {
+            suratHtml = `<p class="mt-2"><strong>Surat Keputusan:</strong> Belum ada keputusan</p>`;
+          }
+
+          card.innerHTML = `
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="font-semibold text-lg text-gray-900">${c.judul}</h3>
+              <span class="text-xs font-bold px-2 py-1 rounded-full ${statusClass}">${c.status}</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-1"><span class="font-semibold">Prioritas:</span> ${c.prioritas}</p>
+            <p class="text-sm text-gray-600 mb-1"><span class="font-semibold">Kategori:</span> ${c.kategori}</p>
+            <p class="text-sm text-gray-600 mb-1"><span class="font-semibold">Unit:</span> ${c.unit}</p>
+            <p class="text-xs text-gray-400">${new Date(c.tanggal).toLocaleDateString()}</p>
+            ${fotoHtml}
+            ${suratHtml}
+            <button class="mt-3 text-blue-600 font-semibold hover:underline focus:outline-none" type="button">Lihat Detail</button>
+          `;
+          container.appendChild(card);
+
+          const detailBtn = card.querySelector("button:last-of-type");
+          detailBtn.addEventListener("click", () => {
+            openModal(c);
+          });
+          card.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              openModal(c);
+            }
+          });
+
+          const pdfViewBtn = card.querySelector(".btn-view-pdf");
+          if (pdfViewBtn) {
+            pdfViewBtn.addEventListener("click", () => {
+              openPdfModal(c.suratKeputusanDataUrl);
+            });
+          }
+        });
+      }
+    }
+
+    // Render admin complaints table with management actions
+    function renderAdminComplaints() {
+      const tbody = document.getElementById("admin-complaints-tbody");
+      tbody.innerHTML = "";
+      if (complaints.length === 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="9" class="text-center py-4 text-gray-500 italic">Belum ada pengaduan.</td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+      complaints.forEach((c, index) => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-gray-50";
+
+        // Status select options
+        const statusOptions = ["Menunggu", "Diproses", "Selesai"];
+        const statusSelect = document.createElement("select");
+        statusSelect.className = "border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+        statusOptions.forEach(status => {
+          const option = document.createElement("option");
+          option.value = status;
+          option.textContent = status;
+          if (c.status === status) option.selected = true;
+          statusSelect.appendChild(option);
+        });
+        statusSelect.addEventListener("change", () => {
+          c.status = statusSelect.value;
+          saveComplaints();
+          updateDashboardStats();
+          renderAdminComplaints();
+        });
+
+        // Prioritas select options
+        const prioritasOptions = ["Rendah", "Sedang", "Tinggi"];
+        const prioritasSelect = document.createElement("select");
+        prioritasSelect.className = "border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+        prioritasOptions.forEach(prioritas => {
+          const option = document.createElement("option");
+          option.value = prioritas;
+          option.textContent = prioritas;
+          if (c.prioritas === prioritas) option.selected = true;
+          prioritasSelect.appendChild(option);
+        });
+        prioritasSelect.addEventListener("change", () => {
+          c.prioritas = prioritasSelect.value;
+          saveComplaints();
+          renderAdminComplaints();
+        });
+
+        // Surat Keputusan button or upload button
+        let suratCellContent = "";
+        if (c.suratKeputusanDataUrl) {
+          suratCellContent = `<button data-id="${c.id}" class="btn-view-pdf pdf-link" type="button">Lihat Surat Keputusan (PDF)</button>`;
+        } else {
+          suratCellContent = `<button data-id="${c.id}" class="btn-upload-decision text-blue-600 hover:underline font-semibold" type="button">Upload Surat Keputusan</button>`;
+        }
+
+        tr.innerHTML = `
+          <td class="py-2 px-4 border-b border-gray-300">${index + 1}</td>
+          <td class="py-2 px-4 border-b border-gray-300">${c.judul}</td>
+          <td class="py-2 px-4 border-b border-gray-300">${c.kategori}</td>
+          <td class="py-2 px-4 border-b border-gray-300">${c.unit}</td>
+          <td class="py-2 px-4 border-b border-gray-300">${new Date(c.tanggal).toLocaleDateString()}</td>
+          <td class="py-2 px-4 border-b border-gray-300"></td>
+          <td class="py-2 px-4 border-b border-gray-300"></td>
+          <td class="py-2 px-4 border-b border-gray-300">${suratCellContent}</td>
+          <td class="py-2 px-4 border-b border-gray-300 text-center">
+            <button data-id="${c.id}" class="btn-view-detail text-blue-600 hover:underline font-semibold mr-2" type="button" aria-label="Lihat detail pengaduan">Detail</button>
+            <button data-id="${c.id}" class="btn-delete-complaint text-red-600 hover:underline font-semibold" type="button" aria-label="Hapus pengaduan">Hapus</button>
+          </td>
+        `;
+
+        // Append tr first to DOM to attach elements
+        tbody.appendChild(tr);
+
+        // Append status select to the correct cell
+        tr.children[5].appendChild(statusSelect);
+        // Append prioritas select to the correct cell
+        tr.children[6].appendChild(prioritasSelect);
+
+        // Attach event listeners for PDF view
+        const pdfViewBtn = tr.querySelector(".btn-view-pdf");
+        if (pdfViewBtn) {
+          pdfViewBtn.addEventListener("click", () => {
+            openPdfModal(c.suratKeputusanDataUrl);
+          });
+        }
+
+        // Attach event listener for upload decision
+        const uploadBtn = tr.querySelector(".btn-upload-decision");
+        if (uploadBtn) {
+          uploadBtn.addEventListener("click", () => {
+            openUploadModal(c.id);
+          });
+        }
+
+        // Attach event listener for detail view
+        const detailBtn = tr.querySelector(".btn-view-detail");
+        detailBtn.addEventListener("click", () => {
+          openModal(c);
+        });
+
+        // Attach event listener for delete complaint
+        const deleteBtn = tr.querySelector(".btn-delete-complaint");
+        deleteBtn.addEventListener("click", () => {
+          if (confirm(`Hapus pengaduan "${c.judul}"?`)) {
+            complaints = complaints.filter(comp => comp.id !== c.id);
+            saveComplaints();
+            updateDashboardStats();
+            renderAdminComplaints();
+          }
+        });
+      });
+    }
+
+    // Modal open/close functions
+    function openModal(complaint) {
+      let fotoHtml = "";
+      if (complaint.fotoDataUrl) {
+        fotoHtml = `<p><strong>Foto Lampiran:</strong><br/><img src="${complaint.fotoDataUrl}" alt="Foto lampiran pengaduan" class="max-w-full rounded mt-1" /></p>`;
+      }
+      let suratHtml = "";
+      if (complaint.suratKeputusanDataUrl) {
+        suratHtml = `<p><strong>Surat Keputusan:</strong> <button data-id="${complaint.id}" class="btn-view-pdf pdf-link" type="button">Lihat Surat Keputusan (PDF)</button></p>`;
+      } else {
+        suratHtml = `<p><strong>Surat Keputusan:</strong> Belum ada keputusan</p>`;
+      }
+      modalContent.innerHTML = `
+        <p><strong>Judul:</strong> ${complaint.judul}</p>
+        <p><strong>Kategori:</strong> ${complaint.kategori}</p>
+        <p><strong>Deskripsi:</strong> ${complaint.deskripsi}</p>
+        <p><strong>Unit Terkait:</strong> ${complaint.unit}</p>
+        <p><strong>Lokasi Kejadian:</strong> ${complaint.lokasi}</p>
+        <p><strong>Prioritas:</strong> ${complaint.prioritas}</p>
+        <p><strong>Nomor Telepon:</strong> ${complaint.telepon}</p>
+        ${fotoHtml}
+        <p><strong>Status:</strong> ${complaint.status}</p>
+        <p><strong>Tanggal:</strong> ${new Date(complaint.tanggal).toLocaleString()}</p>
+        ${suratHtml}
+      `;
+      modalBackdrop.classList.remove("hidden");
+      modalBackdrop.classList.add("flex");
+      modalCloseBtn.focus();
+
+      const pdfViewBtn = modalContent.querySelector(".btn-view-pdf");
+      if (pdfViewBtn) {
+        pdfViewBtn.addEventListener("click", () => {
+          openPdfModal(complaint.suratKeputusanDataUrl);
+        });
+      }
+    }
+    function closeModal() {
+      modalBackdrop.classList.add("hidden");
+      modalBackdrop.classList.remove("flex");
+    }
+    modalCloseBtn.addEventListener("click", closeModal);
+    modalBackdrop.addEventListener("click", (e) => {
+      if (e.target === modalBackdrop) closeModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modalBackdrop.classList.contains("hidden")) {
+        closeModal();
+      }
+    });
+
+    // Image preview for complaint photo
+    const fotoInput = document.getElementById("foto");
+    const fotoPreview = document.getElementById("foto-preview");
+    fotoInput.addEventListener("change", () => {
+      const file = fotoInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          fotoPreview.src = e.target.result;
+          fotoPreview.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
+      } else {
+        fotoPreview.src = "";
+        fotoPreview.classList.add("hidden");
+      }
+    });
+
+    // Role filter form submit event
+    roleFilterForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const selectedRole = roleFilterSelect.value;
+      renderDaftarPengaduan(selectedRole);
+    });
+
+    // Update pelapor info in complaint form
+    function updatePelaporInfo() {
+      if (!currentUser) return;
+      document.getElementById("pelapor-nama").textContent = currentUser.nama || "";
+      document.getElementById("pelapor-email").textContent = currentUser.email || "";
+      document.getElementById("pelapor-role").textContent = currentUser.role || "";
+      document.getElementById("pelapor-nim").textContent = currentUser.nim || "";
+    }
+
+    // Login form submit event with authentication
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = loginEmailInput.value.trim().toLowerCase();
+      const password = loginPasswordInput.value;
+
+      if (!validateGmail(email)) {
+        loginEmailFeedback.textContent = "Email harus menggunakan domain gmail.com";
+        loginEmailInput.focus();
+        return;
+      }
+
+      const user = users.find(u => u.email.toLowerCase() === email && u.password === password);
+      if (!user) {
+        loginEmailFeedback.textContent = "Email atau password salah.";
+        loginEmailInput.focus();
+        return;
+      }
+
+      loggedIn = true;
+      currentUser = user;
+      loginEmailFeedback.textContent = "";
+      loginForm.reset();
+      registerForm.reset();
+      clearEmailFeedback();
+      showMenuForRole(currentUser.role);
+      setActiveMenu(dashboardBtn);
+      showSection(dashboardSection);
+      updateDashboardStats();
+      updatePelaporInfo();
+      renderDaftarPengaduan(roleFilterSelect.value);
+      localStorage.setItem("adukampus_loggedInUserEmail", currentUser.email);
+      alert(`Selamat datang, ${currentUser.nama || currentUser.email}!`);
+    });
+
+    // Register form submit event with user creation
+    registerForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nama = document.getElementById("reg-nama").value.trim();
+      const email = regEmailInput.value.trim().toLowerCase();
+      const nim = document.getElementById("reg-nim").value.trim();
+      const role = document.getElementById("reg-role").value;
+      const password = registerPasswordInput.value;
+
+      if (!validateGmail(email)) {
+        regEmailFeedback.textContent = "Email harus menggunakan domain gmail.com";
+        regEmailInput.focus();
+        return;
+      }
+
+      if (!nama || !email || !nim || !role || !password) {
+        alert("Semua field harus diisi.");
+        return;
+      }
+
+      const existingUser = users.find(u => u.email.toLowerCase() === email);
+      if (existingUser) {
+        regEmailFeedback.textContent = "Email sudah terdaftar.";
+        regEmailInput.focus();
+        return;
+      }
+
+      const newUser = {
+        email,
+        password,
+        role,
+        nama,
+        nim
+      };
+      users.push(newUser);
+      saveUsers();
+
+      alert("Pendaftaran berhasil! Silakan login menggunakan akun Anda.");
+      tabLogin.click();
+    });
+
+    // Logout button event
+    logoutBtn.addEventListener("click", () => {
+      loggedIn = false;
+      currentUser = null;
+      showMenuForRole(null);
+      showSection(authSection);
+      localStorage.removeItem("adukampus_loggedInUserEmail");
+      alert("Anda telah logout.");
+    });
+
+    // Sidebar menu buttons events
+    dashboardBtn.addEventListener("click", () => {
+      setActiveMenu(dashboardBtn);
+      showSection(dashboardSection);
+      updateDashboardStats();
+    });
+    kirimBtn.addEventListener("click", () => {
+      setActiveMenu(kirimBtn);
+      showSection(kirimSection);
+      updatePelaporInfo();
+    });
+    daftarBtn.addEventListener("click", () => {
+      setActiveMenu(daftarBtn);
+      showSection(daftarSection);
+      renderDaftarPengaduan(roleFilterSelect.value);
+    });
+    manageRoleUnitBtn.addEventListener("click", () => {
+      setActiveMenu(manageRoleUnitBtn);
+      showSection(manageSection);
+      renderUserList();
+      renderUnitList();
+    });
+
+    // Modal PDF open/close
+    function openPdfModal(pdfUrl) {
+      if (!pdfUrl) return;
+      pdfFrame.src = pdfUrl;
+      modalPdfBackdrop.classList.remove("hidden");
+      modalPdfBackdrop.classList.add("flex");
+      modalPdfCloseBtn.focus();
+    }
+    function closePdfModal() {
+      modalPdfBackdrop.classList.add("hidden");
+      modalPdfBackdrop.classList.remove("flex");
+      pdfFrame.src = "";
+    }
+    modalPdfCloseBtn.addEventListener("click", closePdfModal);
+    modalPdfBackdrop.addEventListener("click", (e) => {
+      if (e.target === modalPdfBackdrop) closePdfModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modalPdfBackdrop.classList.contains("hidden")) {
+        closePdfModal();
+      }
+    });
+
+    // Complaint form submit event
+    const complaintForm = document.getElementById("complaintForm");
+    complaintForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!loggedIn || !currentUser) {
+        alert("Anda harus login untuk mengirim pengaduan.");
+        return;
+      }
+      const judul = document.getElementById("judul").value.trim();
+      const kategori = document.getElementById("kategori").value;
+      const deskripsi = document.getElementById("deskripsi").value.trim();
+      const unit = document.getElementById("unit").value;
+      const lokasi = document.getElementById("lokasi").value.trim();
+      const prioritas = document.getElementById("prioritas").value;
+      const telepon = document.getElementById("telepon").value.trim();
+
+      if (!judul || !kategori || !deskripsi || !unit || !lokasi || !prioritas || !telepon) {
+        alert("Semua field wajib diisi kecuali foto.");
+        return;
+      }
+
+      const fotoFile = fotoInput.files[0];
+      if (fotoFile) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          addComplaint(e.target.result);
+        };
+        reader.readAsDataURL(fotoFile);
+      } else {
+        addComplaint(null);
+      }
+
+      function addComplaint(fotoDataUrl) {
+        const newComplaint = {
+          id: Date.now().toString(),
+          pelaporEmail: currentUser.email,
+          judul,
+          kategori,
+          deskripsi,
+          unit,
+          lokasi,
+          prioritas,
+          telepon,
+          status: "Menunggu",
+          tanggal: new Date().toISOString(),
+          fotoDataUrl,
+          suratKeputusanDataUrl: null
+        };
+        complaints.push(newComplaint);
+        saveComplaints();
+        alert("Pengaduan berhasil dikirim.");
+        complaintForm.reset();
+        fotoPreview.src = "";
+        fotoPreview.classList.add("hidden");
+        updateDashboardStats();
+        renderDaftarPengaduan(roleFilterSelect.value);
+      }
+    });
+
+    // Manage Users: render user list
+    function renderUserList() {
+      userListTbody.innerHTML = "";
+      users.forEach((user, index) => {
+        const tr = document.createElement("tr");
+        tr.className = "border-b border-gray-200 hover:bg-gray-50";
+
+        tr.innerHTML = `
+          <td class="py-2 px-3 border-r border-gray-300">${user.nama}</td>
+          <td class="py-2 px-3 border-r border-gray-300">${user.email}</td>
+          <td class="py-2 px-3 border-r border-gray-300">${user.role}</td>
+          <td class="py-2 px-3 border-r border-gray-300">${user.nim || ""}</td>
+          <td class="py-2 px-3 border-r border-gray-300 text-right">
+            <button data-index="${index}" class="btn-delete-user text-red-600 hover:underline font-semibold" type="button">Hapus</button>
+          </td>
+        `;
+        userListTbody.appendChild(tr);
+      });
+
+      // Attach delete event listeners
+      const deleteButtons = userListTbody.querySelectorAll(".btn-delete-user");
+      deleteButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const idx = parseInt(btn.getAttribute("data-index"));
+          if (users[idx].email === currentUser.email) {
+            alert("Anda tidak dapat menghapus user yang sedang login.");
+            return;
+          }
+          if (confirm(`Hapus user ${users[idx].nama} (${users[idx].email})?`)) {
+            users.splice(idx, 1);
+            saveUsers();
+            renderUserList();
+          }
+        });
+      });
+    }
+
+    // Manage Units: render unit list
+    function renderUnitList() {
+      unitList.innerHTML = "";
+      units.forEach((unit, index) => {
+        const li = document.createElement("li");
+        li.className = "flex justify-between items-center";
+        li.textContent = unit;
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "text-red-600 hover:underline ml-2";
+        delBtn.textContent = "Hapus";
+        delBtn.addEventListener("click", () => {
+          if (confirm(`Hapus unit "${unit}"?`)) {
+            units.splice(index, 1);
+            saveUnits();
+            renderUnitList();
+          }
+        });
+        li.appendChild(delBtn);
+        unitList.appendChild(li);
+      });
+    }
+
+    // Add User form submit
+    addUserForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nama = userNameInput.value.trim();
+      const email = userEmailInput.value.trim().toLowerCase();
+      const nim = userNimInput.value.trim();
+      const role = userRoleSelect.value;
+      const password = userPasswordInput.value;
+
+      if (!nama || !email || !nim || !role || !password) {
+        alert("Semua field harus diisi.");
+        return;
+      }
+      if (!validateGmail(email)) {
+        userEmailFeedback.textContent = "Email harus menggunakan domain gmail.com";
+        userEmailInput.focus();
+        return;
+      }
+      const existingUser = users.find(u => u.email.toLowerCase() === email);
+      if (existingUser) {
+        userEmailFeedback.textContent = "Email sudah terdaftar.";
+        userEmailInput.focus();
+        return;
+      }
+      userEmailFeedback.textContent = "";
+
+      const newUser = { nama, email, nim, role, password };
+      users.push(newUser);
+      saveUsers();
+      alert("User berhasil ditambahkan.");
+      addUserForm.reset();
+      renderUserList();
+    });
+
+    // Add Unit form submit
+    addUnitForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const unitName = unitNameInput.value.trim();
+      if (!unitName) {
+        alert("Nama unit harus diisi.");
+        return;
+      }
+      if (units.includes(unitName)) {
+        alert("Unit sudah ada.");
+        return;
+      }
+      units.push(unitName);
+      saveUnits();
+      alert("Unit berhasil ditambahkan.");
+      addUnitForm.reset();
+      renderUnitList();
+    });
+
+    // Upload Surat Keputusan modal handling
+    let currentUploadComplaintId = null;
+    function openUploadModal(complaintId) {
+      currentUploadComplaintId = complaintId;
+      modalUploadBackdrop.classList.remove("hidden");
+      modalUploadBackdrop.classList.add("flex");
+      document.getElementById("decisionFile").value = "";
+      document.getElementById("decisionFile").focus();
+    }
+    function closeUploadModal() {
+      modalUploadBackdrop.classList.add("hidden");
+      modalUploadBackdrop.classList.remove("flex");
+      currentUploadComplaintId = null;
+    }
+    uploadCancelBtn.addEventListener("click", closeUploadModal);
+    modalUploadBackdrop.addEventListener("click", (e) => {
+      if (e.target === modalUploadBackdrop) closeUploadModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modalUploadBackdrop.classList.contains("hidden")) {
+        closeUploadModal();
+      }
+    });
+
+    uploadDecisionForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById("decisionFile");
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Pilih file PDF terlebih dahulu.");
+        return;
+      }
+      if (file.type !== "application/pdf") {
+        alert("File harus berupa PDF.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => {
+        const dataUrl = e.target.result;
+        const complaint = complaints.find(c => c.id === currentUploadComplaintId);
+        if (complaint) {
+          complaint.suratKeputusanDataUrl = dataUrl;
+          saveComplaints();
+          alert("Surat Keputusan berhasil diupload.");
+          closeUploadModal();
+          renderAdminComplaints();
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Initialize view
+    function initialize() {
+      const savedUserEmail = localStorage.getItem("adukampus_loggedInUserEmail");
+      if (savedUserEmail) {
+        const user = users.find(u => u.email.toLowerCase() === savedUserEmail.toLowerCase());
+        if (user) {
+          loggedIn = true;
+          currentUser = user;
+          showMenuForRole(currentUser.role);
+          setActiveMenu(dashboardBtn);
+          showSection(dashboardSection);
+          updateDashboardStats();
+          updatePelaporInfo();
+          renderDaftarPengaduan(roleFilterSelect.value);
+          return;
+        }
+      }
+      showMenuForRole(null);
+      showSection(authSection);
+    }
+
+    initialize();
+  </script>
+</body>
+</html>
